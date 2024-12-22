@@ -295,6 +295,14 @@ static int ncdev_mem_alloc(struct neuron_device *nd, void *param)
 		mc_free(&mc);
 		return ret;
 	}
+
+	printk(KERN_ERR "[%s] [Debug Sri] size: 0x%llx\n", __func__, mem_alloc_arg.size);
+	printk(KERN_ERR "[%s] [Debug Sri] host_memory: 0x%x\n", __func__, mem_alloc_arg.host_memory);
+	printk(KERN_ERR "[%s] [Debug Sri] dram_channel: 0x%x\n", __func__, mem_alloc_arg.dram_channel);
+	printk(KERN_ERR "[%s] [Debug Sri] dram_region: 0x%x\n", __func__, mem_alloc_arg.dram_region);
+	printk(KERN_ERR "[%s] [Debug Sri] nc_id: 0x%x\n", __func__, mem_alloc_arg.nc_id);
+	printk(KERN_ERR "[%s] [Debug Sri] mem_handle: 0x%llx\n", __func__, mh);
+
 	return 0;
 }
 
@@ -315,6 +323,10 @@ static int ncdev_mem_get_pa(void *param)
 		pa = mc->pa | PCIEX8_0_BASE;
 	else
 		pa = mc->pa;
+
+    printk(KERN_ERR "[%s] [Debug Sri] mem_handle: 0x%llx\n", __func__, mem_get_pa_arg.mem_handle);
+    printk(KERN_ERR "[%s] [Debug Sri] pa: 0x%llx\n", __func__, pa);
+	
 	return copy_to_user(mem_get_pa_arg.pa, &pa, sizeof(u64));
 }
 

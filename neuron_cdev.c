@@ -42,6 +42,7 @@ struct ncdev {
 /* char device nodes created for each device. */
 static struct ncdev devnodes[NEURON_MAX_DEV_NODES];
 
+//MACHIRYBUG: We are casting user provided value into kernel pointer.
 static u64 ncdev_mem_chunk_to_mem_handle(struct mem_chunk *mc)
 {
 	return (u64)mc;
@@ -84,6 +85,7 @@ static int ncdev_dma_engine_get_state(struct neuron_device *nd, void *param)
 	ret = ndmar_eng_get_state(nd, arg.eng_id, &state);
 	if (ret)
 		return ret;
+	// MACHIRYBUG: not all fields of state are initialized. Kernel memory leak.
 	return copy_to_user(arg.state, &state, sizeof(state));
 }
 
@@ -151,6 +153,7 @@ static int ncdev_dma_copy_descriptors(struct neuron_device *nd, void *param)
 		offset += copy_size;
 	}
 out:
+	// MACHIRYBUG: Invalid memory access from Line 130 as src_mc is uninitialized.
 	mc_free(&src_mc);
 	return ret;
 }
@@ -347,6 +350,8 @@ static int ncdev_mem_copy(struct neuron_device *nd, void *param)
 	src_mc = ncdev_mem_handle_to_mem_chunk(arg.src_mem_handle);
 	dst_mc = ncdev_mem_handle_to_mem_chunk(arg.dst_mem_handle);
 	// check access is within the range.
+	// MACHIRYBUG: There are many places this check is performed. But this is not valid because of integer overflow.
+	// both src_offset, size and mc->size are 32 bit => src_offset and size are both completly controlled by user.
 	if (arg.src_offset + arg.size > src_mc->size) {
 		pr_err("src offset+size is too large for mem handle\n");
 		return -EINVAL;
@@ -862,6 +867,7 @@ long ncdev_ioctl(struct file *filep, unsigned int cmd, unsigned long param)
 	} else if (cmd == NEURON_IOCTL_DEVICE_READY) {
 		return ncdev_device_ready(nd, (void *)param);
 	} else if (cmd == NEURON_IOCTL_DEVICE_INFO) {
+		// Can get bar 0 and bar 2 address and size
 		return ncdev_device_info(nd, (void *)param);
 	} else if (cmd == NEURON_IOCTL_DEVICE_INIT) {
 		return ncdev_device_init(nd, (void *)param);

@@ -748,6 +748,7 @@ static long ncdev_device_init(struct neuron_device *nd, void *param)
 	mutex_lock(&ncdev_device_lock);
 	ret = copy_from_user(&arg, (struct neuron_ioctl_device_init *)param, sizeof(arg));
 	if (ret) {
+		//SRIHARIBUG: dead lock.
 		return ret;
 	}
 
